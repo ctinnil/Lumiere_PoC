@@ -21,8 +21,11 @@ client = openai.OpenAI(api_key=openai.api_key)
 def home():
     if request.method == 'POST':
         context = request.form.get('context')
+
+        """Create a custom dataset fit for ML and DL form the provided web access log file, label the events based on your knowledge and know best practices or recommendations as malicious and legitimate, and encode and scale. Make assumptions and execute all the processing as needed."""
+
         file = request.files.get('file')
-        context += " Output the resulting dataset into a single downloadable parquet file."
+        context += " Limit your output to the resulting dataset into a single downloadable parquet file. Don't provide any extra explanations."
 
         if not file:
             return 'No file uploaded', 400
@@ -80,6 +83,10 @@ def home():
             thread_messages = client.beta.threads.messages.list(thread_id=thread.id)
             assistant_messages = [msg for msg in thread_messages if msg.role == "assistant"]
             latest_response = assistant_messages[-1].content if assistant_messages else ""
+
+            print(assistant_messages)
+            print()
+            print(latest_response)
 
             # Here you need to process latest_response to get the output file
             # This depends on how your OpenAI model responds
