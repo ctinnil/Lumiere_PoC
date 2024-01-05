@@ -25,7 +25,7 @@ def home():
     if request.method == 'POST':
         context = request.form.get('context')
         file = request.files.get('file')
-        context += " Limit your output to the resulting dataset into a single downloadable .parquet or .CSV file. Limit your output to conserve tokens to the bare minimum. Your asnwer should not be longer then 30 words. Don't provide any extra explanations, just the final file to download."
+        context += " Limit your output to the resulting dataset into a single downloadable .parquet or .CSV file. Limit your output to conserve tokens to the bare minimum. Your asnwer should not be longer then 30 words! Don't provide any extra explanations, just the final file to download!"
 
         if not file:
             return 'No file uploaded', 400
@@ -69,25 +69,22 @@ def home():
             if file_id:
                 # Retrieve the file metadata
                 file_metadata_response = client.files.retrieve(file_id)
-                #file_metadata = file_metadata_response.json()  # Using .json() to parse JSON response
-                # Check if the response needs to be loaded from JSON
-                if isinstance(file_metadata_response, str):
-                    print("if")
-                    file_metadata = json.loads(file_metadata_response)
-                else:
-                    # If it's already a dictionary, use it directly
-                    print("else")
-                    file_metadata = file_metadata_response
-                print(file_metadata)
-                # Extract the filename
-                filename = file_metadata.get('filename', None)
+                # Access the filename attribute directly
+                filename = file_metadata_response.filename
                 print(filename)
                 file_content = client.files.retrieve_content(file_id)
+                print(file_content)
                 output_filename = os.path.basename(filename)
-                with open(output_filename, 'wb') as file:
+                print(output_filename)
+                with open(output_filename, 'w') as file:
                     file.write(file_content)
-
-                df = pd.read_parquet(output_filename, engine='fastparquet')
+                    # Check the file extension and read the file accordingly
+                if output_filename.endswith('.csv'):
+                    df = pd.read_csv(output_filename)
+                elif output_filename.endswith('.parquet'):
+                    df = pd.read_parquet(output_filename, engine='fastparquet')
+                else:
+                    return f"Unsupported file type for {output_filename}", 400
                 print(df.head())
             else:
                 return "No file ID found in the assistant's responses", 400
@@ -102,7 +99,7 @@ def home():
 <head>
     <meta charset="UTF-8">
     <title>Lumiere - Cyber Data Miner</title>
-    <link rel="icon" type="image/png" href="img/favicon.ico">
+    <link rel="icon" type="image/png" href="/static/favicon.ico">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -133,7 +130,7 @@ def home():
             margin: 15px 0 5px;
         }
         textarea, input[type="file"] {
-            width: 100%;
+            width: 95%;
             padding: 10px;
             margin-bottom: 20px;
             border-radius: 5px;
@@ -150,11 +147,18 @@ def home():
         input[type="submit"]:hover {
             background: #025aa5;
         }
+        .openai-badge {
+        /*    position: fixed; */
+            right: 10px; 
+            bottom: 10px; 
+            width: 150px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <img class="logo" src="img/logo_t.png" alt="Lumiere Logo">
+        <img class="logo" src="/static/logo_t.png" alt="Lumiere Logo">
         <h2>Lumiere - Cyber Data Miner</h2>
         <form method="post" enctype="multipart/form-data">
             <label for="context">Context:</label>
@@ -162,6 +166,8 @@ def home():
             <label for="file">Upload file:</label>
             <input type="file" name="file">
             <input type="submit" value="Submit">
+            <br>
+            <img class="openai-badge" src="/static/powered-by-openai-badge-outlined-on-light.svg" alt="Powered by OpenAI">
         </form>
     </div>
 </body>
