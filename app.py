@@ -147,12 +147,13 @@ def home():
         input[type="submit"]:hover {
             background: #025aa5;
         }
-        .openai-badge {
-        /*    position: fixed; */
-            right: 10px; 
-            bottom: 10px; 
-            width: 150px;
+        .form-footer {
+            text-align: right;
             margin-top: 20px;
+        }
+
+        .openai-badge {
+            width: 100px; /* Adjust as needed */
         }
     </style>
 </head>
@@ -166,8 +167,10 @@ def home():
             <label for="file">Upload file:</label>
             <input type="file" name="file">
             <input type="submit" value="Submit">
-            <br>
-            <img class="openai-badge" src="/static/powered-by-openai-badge-outlined-on-light.svg" alt="Powered by OpenAI">
+            <div class="form-footer">
+                <!-- Powered by OpenAI badge -->
+                <img class="openai-badge" src="/static/powered-by-openai-badge-outlined-on-light.svg" alt="Powered by OpenAI">
+            </div>
         </form>
     </div>
 </body>
