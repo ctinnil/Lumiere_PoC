@@ -2,10 +2,13 @@ import openai
 import pandas as pd
 import os
 import time
+import re
 from dotenv import load_dotenv
 from flask import Flask, request, send_file, render_template_string
-import requests
 import fastparquet
+import json
+
+"""Create a custom dataset fit for ML and DL form the provided web access log file, label the events based on your knowledge and know best practices or recommendations as malicious and legitimate, and encode and scale. Make assumptions and execute all the processing as needed."""
 
 app = Flask(__name__)
 
@@ -21,102 +24,156 @@ client = openai.OpenAI(api_key=openai.api_key)
 def home():
     if request.method == 'POST':
         context = request.form.get('context')
-
-        """Create a custom dataset fit for ML and DL form the provided web access log file, label the events based on your knowledge and know best practices or recommendations as malicious and legitimate, and encode and scale. Make assumptions and execute all the processing as needed."""
-
         file = request.files.get('file')
-        context += " Limit your output to the resulting dataset into a single downloadable parquet file. Don't provide any extra explanations."
+        context += " Limit your output to the resulting dataset into a single downloadable .parquet or .CSV file. Limit your output to conserve tokens to the bare minimum. Your asnwer should not be longer then 30 words. Don't provide any extra explanations, just the final file to download."
 
         if not file:
             return 'No file uploaded', 400
 
         try:
-            # Save the uploaded file temporarily
             temp_filename = 'temp_uploaded_file'
             file.save(temp_filename)
-
-            # Upload the file to OpenAI
             with open(temp_filename, 'rb') as f:
-                openai_file = client.files.create(
-                    file=f,
-                    purpose='assistants'
-                )
-            os.remove(temp_filename)  # Remove the temporary file
+                openai_file = client.files.create(file=f, purpose='assistants')
+            os.remove(temp_filename)
         except Exception as e:
             return f"Error uploading file to OpenAI: {e}", 500
 
         try:
-            # Create a thread with the file ID
-            thread = client.beta.threads.create(
-                messages=[
-                    {
-                        "role": "user",
-                        "content": context,
-                        "file_ids": [openai_file.id]
-                    }
-                ]
-            )
+            thread = client.beta.threads.create(messages=[{"role": "user", "content": context, "file_ids": [openai_file.id]}])
+            run = client.beta.threads.runs.create(thread_id=thread.id, assistant_id=assistant_id)
 
-            # Create a run within the thread
-            run = client.beta.threads.runs.create(
-                thread_id=thread.id,
-                assistant_id=assistant_id
-            )
-
-            # Polling mechanism to wait for the run to complete
-            max_retries = 100
-            retries = 0
             run_status = None
-            while run_status != "completed" and retries < max_retries:
-                time.sleep(2)  # Sleep for 2 seconds before checking the status again
+            while run_status != "completed":
+                time.sleep(2)
                 updated_run = client.beta.threads.runs.retrieve(run_id=run.id, thread_id=thread.id)
                 run_status = updated_run.status
-                retries += 1
 
                 if run_status in ["failed", "expired", "cancelled"]:
                     return f"Run did not complete successfully: Status {run_status}"
 
-            if retries >= max_retries:
-                return "Run polling reached maximum retries"
-
-            # Retrieve the latest assistant message
-            thread_messages = client.beta.threads.messages.list(thread_id=thread.id)
-            assistant_messages = [msg for msg in thread_messages if msg.role == "assistant"]
+            all_messages = client.beta.threads.messages.list(thread_id=thread.id)
+            assistant_messages = [msg for msg in all_messages if msg.role == "assistant"]
             latest_response = assistant_messages[-1].content if assistant_messages else ""
 
             print(assistant_messages)
             print()
             print(latest_response)
 
-            # Here you need to process latest_response to get the output file
-            # This depends on how your OpenAI model responds
-            # Assuming it provides a direct link or data to create a file
-            output_filename = 'processed_output.parquet'
-            # Process the response to create or download the file
-            
         except Exception as e:
             return f"Error in thread processing: {e}", 500
 
+        try:
+            file_id = extract_file_id(latest_response)
+            print(file_id)
+            if file_id:
+                # Retrieve the file metadata
+                file_metadata_response = client.files.retrieve(file_id)
+                #file_metadata = file_metadata_response.json()  # Using .json() to parse JSON response
+                # Check if the response needs to be loaded from JSON
+                if isinstance(file_metadata_response, str):
+                    print("if")
+                    file_metadata = json.loads(file_metadata_response)
+                else:
+                    # If it's already a dictionary, use it directly
+                    print("else")
+                    file_metadata = file_metadata_response
+                print(file_metadata)
+                # Extract the filename
+                filename = file_metadata.get('filename', None)
+                print(filename)
+                file_content = client.files.retrieve_content(file_id)
+                output_filename = os.path.basename(filename)
+                with open(output_filename, 'wb') as file:
+                    file.write(file_content)
+
+                df = pd.read_parquet(output_filename, engine='fastparquet')
+                print(df.head())
+            else:
+                return "No file ID found in the assistant's responses", 400
+        except Exception as e:
+            return f"Error processing file: {e}", 500
+
         return send_file(output_filename, as_attachment=True)
 
-    # HTML form for file upload and context input
     return render_template_string('''
-        <!DOCTYPE html>
-        <html>
-        <body>
-
-        <h2>File and Context Submission</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lumiere - Cyber Data Miner</title>
+    <link rel="icon" type="image/png" href="img/favicon.ico">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f4f4;
+            text-align: center;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .logo {
+            width: 100px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #333;
+        }
+        form {
+            background: #fff;
+            padding: 20px;
+            display: inline-block;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px 0px #0000001a;
+        }
+        label {
+            display: block;
+            margin: 15px 0 5px;
+        }
+        textarea, input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        input[type="submit"] {
+            background: #0275d8;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background: #025aa5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img class="logo" src="img/logo_t.png" alt="Lumiere Logo">
+        <h2>Lumiere - Cyber Data Miner</h2>
         <form method="post" enctype="multipart/form-data">
-            <label for="context">Context:</label><br>
-            <textarea name="context" rows="4" cols="50"></textarea><br><br>
-            <label for="file">Upload file:</label><br>
-            <input type="file" name="file"><br><br>
+            <label for="context">Context:</label>
+            <textarea name="context" rows="4" cols="50"></textarea>
+            <label for="file">Upload file:</label>
+            <input type="file" name="file">
             <input type="submit" value="Submit">
         </form>
-
-        </body>
-        </html>
+    </div>
+</body>
+</html>
     ''')
+
+def extract_file_id(messages):
+    file_id_pattern = r"file-[a-zA-Z0-9]+"
+    match = re.search(file_id_pattern, str(messages))
+    if match:
+        return match.group(0)
+    return None
 
 if __name__ == '__main__':
     app.run(debug=True)
