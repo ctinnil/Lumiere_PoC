@@ -19,6 +19,16 @@ curl https://api.openai.com/v1/assistants/asst_QE9FSwuR2ZWTl7mzQZKBHzSy \
   -H "OpenAI-Beta: assistants=v1"
 ```
 
+This Flask App will allow you to create a dataset in a couple of easy steps:
+
+- add an explicit context describing the file used as a base;
+- upload the file;
+- press submit and wait for the result.
+
+***As the LLM can generate different outputs, the cost of the API will depend on your context and how well the GPT understands the task. Sometimes, a file will not be delivered, so check the printouts and emphasize the context to limit the scope of the model.***
+
+![Alt text](<static/Lumiere API PoC.png>)
+
 For demonstration purposes, we used a web `access.log` file and obtained the `labeled_web_interaction_dataset.csv`.
 
 + [Original access.log](files/access.log)
@@ -31,4 +41,4 @@ The results have shown better labeling of potential malicious requests, compared
 
 The functionality is also available through the intuitive Custom GPT, also named [Lumiere](https://chat.openai.com/g/g-7GQEoVuPT-lumiere), available in OpenAI's store.
 
-![Alt text](<static/Screenshot 2024-01-06 at 08.38.04.png>)
+![Alt text](<static/Lumiere ChatGPT PoC.png>)
