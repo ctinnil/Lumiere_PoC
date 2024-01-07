@@ -37,7 +37,7 @@ For demonstration purposes, we used a web `access.log` file and obtained the `la
 
 The results have shown better labeling of potential malicious requests, compared to [Apache Scalp](https://code.google.com/archive/p/apache-scalp/). 
 
-![Alt text](<static/charts scalp-lumiere.gif>)
+![Alt text](<static/chart scalp-lumiere.gif>)
 
 The functionality is also available through the intuitive Custom GPT, also named [Lumiere](https://chat.openai.com/g/g-7GQEoVuPT-lumiere), available in OpenAI's store.
 
