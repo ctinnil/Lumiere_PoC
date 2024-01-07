@@ -35,9 +35,14 @@ For demonstration purposes, we used a web `access.log` file and obtained the `la
 + [Apache Scalp results](files/access.log_scalp_Tue-19-Dec-2023.txt)
 + [Resulting dataset](files/labeled_web_interaction_dataset.csv)
 
-The results have shown better labeling of potential malicious requests, compared to [Apache Scalp](https://code.google.com/archive/p/apache-scalp/). 
+The results have shown better labeling of potential malicious requests, compared to [Apache Scalp](https://code.google.com/archive/p/apache-scalp/).
 
-![Alt text](<static/chart scalp-lumiere-white.gif>)
+	|Total Processed|Marked as Malicious|Marked as Legitimate
+---|---|---|--- 
+**Apache Scalp**|84.355|24.996|59.359
+***Lumiere***|84.348|8.218|76.130
+
+![Alt text](<static/chart scalp lumiere_white.001.png>)
 
 The functionality is also available through the intuitive Custom GPT, also named [Lumiere](https://chat.openai.com/g/g-7GQEoVuPT-lumiere), available in OpenAI's store.
 
