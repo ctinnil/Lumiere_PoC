@@ -37,7 +37,7 @@ For demonstration purposes, we used a web `access.log` file and obtained the `la
 
 The results have shown better labeling of potential malicious requests, compared to [Apache Scalp](https://code.google.com/archive/p/apache-scalp/).
 
-	|Total Processed|Marked as Malicious|Marked as Legitimate
+-|Total Processed|Marked as Malicious|Marked as Legitimate
 ---|---|---|--- 
 **Apache Scalp**|84.355|24.996|59.359
 ***Lumiere***|84.348|8.218|76.130
