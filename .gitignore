@@ -1,4 +1,7 @@
 identity.txt
+pyvenv.cfg
+cybersecurity_dataset.csv
+/bin
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
