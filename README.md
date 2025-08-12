@@ -8,6 +8,19 @@ Users may upload files and input context via an intuitive interface.
 
 ![Lumiere](<static/lumiere poc.drawio.png>)
 
+## Spread the Word 
+
+We’d love your help to grow **Lumiere**!  
+If you find this project helpful, please share it with your friends, colleagues, or communities—on social media, newsletters, or blogs. Every mention helps us reach more people who might benefit from it.
+
+You can also support the project directly and [![Support Lumiere](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-yellow?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/ctinnil)
+
+ —it means a lot and helps keep everything running!
+
+Thank you for being part of our journey and for helping **Lumiere** thrive 🚀
+
+---
+
 To access the full functionality please check the API documentation at [OpenAI](https://platform.openai.com/docs/overview).
 
 *Example*
